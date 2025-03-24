@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cursos Avanzada</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Variables y estilos base */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #007bff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --text-color: #333;
+            --light-text: #ecf0f1;
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1);
+            --border-radius: 0.375rem;
+            --sidebar-width: 15rem;
+            --topbar-height: 3.75rem;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Barra superior */
+        .top-navbar {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            padding: 0.625rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--topbar-height);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--light-text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-icon {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .user-icon i {
+            font-size: 1.25rem;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--card-bg);
+            min-width: 12rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .dropdown-menu a {
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .user-menu:hover .dropdown-menu {
+            display: block;
+        }
+
+        .logout-btn {
+            background-color: var(--danger-color);
+            color: var(--light-text);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Layout principal */
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+            padding-top: var(--topbar-height);
+        }
+
+        /* Menú lateral */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--secondary-color);
+            color: var(--light-text);
+            padding: 1.25rem;
+            position: fixed;
+            height: calc(100vh - var(--topbar-height));
+            transform: translateX(-100%);
+            transition: var(--transition);
+            z-index: 999;
+            top: var(--topbar-height);
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 1.875rem;
+            font-size: 1.25rem;
+            color: var(--light-text);
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar ul li {
+            margin: 1.25rem 0;
+        }
+
+        .sidebar ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            padding: 0.625rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #3d566e;
+        }
+
+        .sidebar ul li i {
+            width: 1.5rem;
+            text-align: center;
+            margin-right: 0.625rem;
+            font-size: 1rem;
+        }
+
+        /* Contenido principal */
+        .main-content {
+            flex: 1;
+            padding: 1.5rem;
+            margin-left: 0;
+            transition: var(--transition);
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .sidebar-open .main-content {
+            margin-left: var(--sidebar-width);
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 1.875rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .header button {
+            background-color: var(--accent-color);
+            color: var(--light-text);
+            border: none;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            align-self: flex-start;
+            white-space: nowrap;
+        }
+
+        .header button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Barra de búsqueda */
+        .search-bar {
+            display: flex;
+            margin-bottom: 1.25rem;
+            flex-direction: column;
+            gap: 0.625rem;
+            width: 100%;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.625rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.9375rem;
+            width: 100%;
+        }
+
+        .search-bar button {
+            background-color: var(--accent-color);
+            color: var(--light-text);
+            border: none;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Tarjetas de cursos */
+        .course-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+            gap: 1.25rem;
+            width: 100%;
+        }
+
+        .course-card {
+            background-color: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-card:hover {
+            transform: translateY(-0.3125rem);
+            box-shadow: 0 0.25rem 0.9375rem rgba(0, 0, 0, 0.2);
+        }
+
+        .course-card h3 {
+            margin: 0;
+            font-size: 1.125rem;
+            color: var(--primary-color);
+            margin-bottom: 0.625rem;
+        }
+
+        .course-card p {
+            margin: 0.3125rem 0;
+            color: #666;
+            font-size: 0.875rem;
+            flex: 1;
+        }
+
+        .course-card .actions {
+            display: flex;
+            gap: 0.625rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .course-card .actions button {
+            background-color: var(--success-color);
+            color: var(--light-text);
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.8125rem;
+            transition: var(--transition);
+            flex: 1 0 auto;
+            min-width: 5rem;
+            text-align: center;
+        }
+
+        .course-card .actions button.delete {
+            background-color: var(--danger-color);
+        }
+
+        .course-card .actions button:hover {
+            opacity: 0.9;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 31.25rem;
+            box-shadow: var(--shadow);
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 1rem;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+            font-size: 0.875rem;
+        }
+
+        .modal-content input,
+        .modal-content textarea,
+        .modal-content select {
+            width: 100%;
+            padding: 0.625rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+        }
+
+        .modal-content textarea {
+            min-height: 6.25rem;
+        }
+
+        .modal-content button {
+            background-color: var(--accent-color);
+            color: var(--light-text);
+            border: none;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .modal-content button:hover {
+            background-color: #0056b3;
+        }
+
+        .modal-content .close {
+            background-color: var(--danger-color);
+            margin-left: 0.625rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.625rem;
+            margin-top: 1.25rem;
+        }
+
+        /* Tablas responsivas */
+        .responsive-table {
+            margin-top: 1.25rem;
+            overflow-x: auto;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            min-width: 45rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.8125rem;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        td {
+            color: #666;
+        }
+
+        .status.paid {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        .status.pending {
+            color: var(--danger-color);
+            font-weight: 500;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .actions button {
+            background-color: var(--success-color);
+            color: var(--light-text);
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .actions button.delete {
+            background-color: var(--danger-color);
+        }
+
+        .actions button:hover {
+            opacity: 0.9;
+        }
+
+        .actions button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Estadísticas */
+        .stats {
+            margin-top: 2.5rem;
+        }
+
+        .stats h2 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 1.25rem;
+        }
+
+        .stats .chart {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            max-width: 50rem;
+            margin: 0 auto;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 18.75rem;
+            width: 100%;
+        }
+
+        /* Utilidades */
+        .hidden {
+            display: none !important;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Overlay para menú móvil */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+        /* Estilos para notificaciones */
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .notification-item {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--accent-color);
+            position: relative;
+        }
+
+        .notification-item.unread {
+            background-color: #e9f5ff;
+            border-left-color: var(--info-color);
+        }
+
+        .notification-item.important {
+            border-left-color: var(--warning-color);
+        }
+
+        .notification-item p {
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-item small {
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
+
+        .notification-item .notification-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .notification-item .notification-actions button {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.25rem;
+        }
+
+        .notification-item .notification-actions button:hover {
+            color: var(--accent-color);
+        }
+
+        /* Estilos para configuración */
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .settings-tab.active {
+            border-bottom-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .settings-tab-content {
+            display: none;
+        }
+
+        .settings-tab-content.active {
+            display: block;
+        }
+
+        .settings-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-form-group h3 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar {
+            width: 5rem;
+            height: 5rem;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            font-size: 2rem;
+            color: #6c757d;
+        }
+
+        /* Media Queries mejoradas */
+        @media (min-width: 48rem) { /* 768px */
+            .dashboard {
+                flex-direction: row;
+            }
+
+            .sidebar {
+                transform: translateX(0);
+                position: sticky;
+                top: var(--topbar-height);
+                height: calc(100vh - var(--topbar-height));
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-width);
+                padding: 2rem;
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+
+            .header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .search-bar {
+                flex-direction: row;
+            }
+
+            .search-bar input {
+                border-radius: var(--border-radius) 0 0 var(--border-radius);
+            }
+
+            .search-bar button {
+                border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            }
+
+            .course-cards {
+                grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+            }
+        }
+
+        @media (min-width: 64rem) { /* 1024px */
+            .main-content {
+                padding: 2.5rem 3rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .course-card h3 {
+                font-size: 1.25rem;
+            }
+
+            .stats .chart {
+                padding: 2rem;
+            }
+
+            .modal-content {
+                max-width: 35rem;
+            }
+        }
+
+        @media (min-width: 80rem) { /* 1280px */
+            .main-content {
+                padding: 3rem 4rem;
+                max-width: 120rem;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .sidebar {
+                width: 16rem;
+            }
+
+            .course-cards {
+                grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+            }
+        }
+
+        @media (max-width: 47.9375rem) { /* 767px */
+            .sidebar {
+                top: var(--topbar-height);
+            }
+
+            .sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .user-menu {
+                gap: 0.5rem;
+            }
+
+            .logout-btn span {
+                display: none;
+            }
+
+            .user-icon span {
+                display: none;
+            }
+
+            .header h1 {
+                font-size: 1.375rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions button {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.25rem;
+            }
+
+            .settings-tabs {
+                flex-wrap: wrap;
+            }
+
+            .settings-tab {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (max-width: 35.9375rem) { /* 575px */
+            .top-navbar {
+                padding: 0.625rem 1rem;
+            }
+
+            .logo {
+                font-size: 1.125rem;
+            }
+
+            .header button {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .course-card {
+                padding: 1rem;
+            }
+
+            .course-card h3 {
+                font-size: 1.125rem;
+            }
+
+            .course-card .actions button {
+                min-width: 4.5rem;
+                padding: 0.375rem 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.5rem 0.75rem;
+            }
+
+            .actions button {
+                padding: 0.375rem 0.5rem;
+                font-size: 0.6875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación superior -->
+    <div class="top-navbar">
+        <button class="menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo">Gestión de Cursos</div>
+        <div class="user-menu">
+            <div class="user-icon">
+                <i class="fas fa-user-circle"></i>
+                <span>Administrador</span>
+            </div>
+            <div class="dropdown-menu">
+                <a href="#" onclick="openSettingsModal()"><i class="fas fa-cog"></i> Configuración</a>
+                <a href="#" onclick="openProfileModal()"><i class="fas fa-user"></i> Perfil</a>
+                <a href="#" onclick="openNotificationsModal()"><i class="fas fa-bell"></i> Notificaciones</a>
+                <a href="#" onclick="openAddUserModal()"><i class="fas fa-user-plus"></i> Agregar Usuario</a>
+                <a href="#"><i class="fas fa-question-circle"></i> Ayuda</a>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> <span>Salir</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay para el menú móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div class="dashboard">
+        <!-- Menú lateral -->
+        <div class="sidebar" id="sidebar">
+            <h2>Menú</h2>
+            <ul>
+                <li><a href="#cursos" onclick="showSection('cursos')"><i class="fas fa-book"></i> Cursos</a></li>
+                <li><a href="#estudiantes" onclick="showSection('estudiantes')"><i class="fas fa-users"></i> Estudiantes</a></li>
+                <li><a href="#pagos" onclick="showSection('pagos')"><i class="fas fa-money-bill-wave"></i> Control de Pagos</a></li>
+                <li><a href="#estadisticas" onclick="showSection('estadisticas')"><i class="fas fa-chart-pie"></i> Estadísticas</a></li>
+            </ul>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-content" id="mainContent">
+            <!-- Encabezado dinámico -->
+            <div class="header">
+                <h1 id="section-title">Cursos Disponibles</h1>
+                <button id="main-action-button" onclick="openModal()">Agregar Curso</button>
+            </div>
+
+            <!-- Barra de búsqueda (solo visible en pagos) -->
+            <div id="search-container" class="search-bar hidden">
+                <input type="text" placeholder="Buscar pagos por estudiante o curso...">
+                <button><i class="fas fa-search"></i> Buscar</button>
+            </div>
+
+            <!-- Sección de Cursos -->
+            <div id="cursos" class="section active">
+                <div class="course-cards">
+                    <!-- Ejemplo de tarjetas de cursos -->
+                    <div class="course-card">
+                        <h3>Curso de HTML</h3>
+                        <p>Aprende los fundamentos de HTML.</p>
+                        <p><strong>Duración:</strong> 4 semanas</p>
+                        <p><strong>Instructor:</strong> Juan Pérez</p>
+                        <div class="actions">
+                            <button>Editar</button>
+                            <button class="delete">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="course-card">
+                        <h3>Curso de CSS</h3>
+                        <p>Domina el diseño web con CSS.</p>
+                        <p><strong>Duración:</strong> 5 semanas</p>
+                        <p><strong>Instructor:</strong> María Gómez</p>
+                        <div class="actions">
+                            <button>Editar</button>
+                            <button class="delete">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="course-card">
+                        <h3>Curso de JavaScript</h3>
+                        <p>Aprende programación con JavaScript.</p>
+                        <p><strong>Duración:</strong> 6 semanas</p>
+                        <p><strong>Instructor:</strong> Carlos Ruiz</p>
+                        <div class="actions">
+                            <button>Editar</button>
+                            <button class="delete">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="course-card">
+                        <h3>Curso de Python</h3>
+                        <p>Introducción a la programación con Python.</p>
+                        <p><strong>Duración:</strong> 8 semanas</p>
+                        <p><strong>Instructor:</strong> Laura Méndez</p>
+                        <div class="actions">
+                            <button>Editar</button>
+                            <button class="delete">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="course-card">
+                        <h3>Curso de React</h3>
+                        <p>Desarrollo de aplicaciones con React.</p>
+                        <p><strong>Duración:</strong> 7 semanas</p>
+                        <p><strong>Instructor:</strong> David Torres</p>
+                        <div class="actions">
+                            <button>Editar</button>
+                            <button class="delete">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Estudiantes -->
+            <div id="estudiantes" class="section">
+                <div class="responsive-table">
+                    <h2>Estudiantes Inscritos</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Curso Inscrito</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ana López</td>
+                                <td>ana@example.com</td>
+                                <td>Curso de HTML</td>
+                                <td class="actions">
+                                    <button>Editar</button>
+                                    <button class="delete">Eliminar</button>
+                                    <button onclick="sendCertificate('Ana López')">Enviar Certificado</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pedro Martínez</td>
+                                <td>pedro@example.com</td>
+                                <td>Curso de CSS</td>
+                                <td class="actions">
+                                    <button>Editar</button>
+                                    <button class="delete">Eliminar</button>
+                                    <button onclick="sendCertificate('Pedro Martínez')">Enviar Certificado</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Luisa Fernández</td>
+                                <td>luisa@example.com</td>
+                                <td>Curso de JavaScript</td>
+                                <td class="actions">
+                                    <button>Editar</button>
+                                    <button class="delete">Eliminar</button>
+                                    <button onclick="sendCertificate('Luisa Fernández')">Enviar Certificado</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Miguel Ángel</td>
+                                <td>miguel@example.com</td>
+                                <td>Curso de Python</td>
+                                <td class="actions">
+                                    <button>Editar</button>
+                                    <button class="delete">Eliminar</button>
+                                    <button onclick="sendCertificate('Miguel Ángel')">Enviar Certificado</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección de Control de Pagos -->
+            <div id="pagos" class="section">
+                <div class="responsive-table">
+                    <h2>Control de Pagos</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Curso</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ana López</td>
+                                <td>Curso de HTML</td>
+                                <td>$100</td>
+                                <td class="status pending">Pendiente</td>
+                                <td class="actions">
+                                    <button onclick="markAsPaid('Ana López')">Marcar como Pagado</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pedro Martínez</td>
+                                <td>Curso de CSS</td>
+                                <td>$120</td>
+                                <td class="status paid">Pagado</td>
+                                <td class="actions">
+                                    <button disabled>Marcar como Pagado</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Luisa Fernández</td>
+                                <td>Curso de JavaScript</td>
+                                <td>$150</td>
+                                <td class="status pending">Pendiente</td>
+                                <td class="actions">
+                                    <button onclick="markAsPaid('Luisa Fernández')">Marcar como Pagado</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Miguel Ángel</td>
+                                <td>Curso de Python</td>
+                                <td>$180</td>
+                                <td class="status paid">Pagado</td>
+                                <td class="actions">
+                                    <button disabled>Marcar como Pagado</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección de Estadísticas -->
+            <div id="estadisticas" class="section">
+                <div class="stats">
+                    <h2>Estadísticas de Cursos</h2>
+                    <div class="chart">
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar curso -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Agregar Nuevo Curso</h2>
+            <form id="course-form" class="modal-form">
+                <!-- Formulario para cursos -->
+                <div id="course-fields">
+                    <label for="course-name">Nombre del Curso:</label>
+                    <input type="text" id="course-name" name="course-name" required>
+
+                    <label for="course-description">Descripción:</label>
+                    <textarea id="course-description" name="course-description" rows="4" required></textarea>
+
+                    <label for="course-duration">Duración:</label>
+                    <input type="text" id="course-duration" name="course-duration" required>
+
+                    <label for="course-instructor">Instructor:</label>
+                    <input type="text" id="course-instructor" name="course-instructor" required>
+                </div>
+
+                <!-- Formulario para estudiantes -->
+                <div id="student-fields" class="hidden">
+                    <label for="student-name">Nombre del Estudiante:</label>
+                    <input type="text" id="student-name" name="student-name">
+
+                    <label for="student-email">Email:</label>
+                    <input type="email" id="student-email" name="student-email">
+
+                    <label for="student-course">Curso:</label>
+                    <select id="student-course" name="student-course">
+                        <option value="html">Curso de HTML</option>
+                        <option value="css">Curso de CSS</option>
+                        <option value="js">Curso de JavaScript</option>
+                        <option value="python">Curso de Python</option>
+                        <option value="react">Curso de React</option>
+                    </select>
+
+                    <label for="student-phone">Teléfono:</label>
+                    <input type="tel" id="student-phone" name="student-phone">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="submit-button">Agregar</button>
+                    <button type="button" class="close" onclick="closeModal()">Cerrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para perfil -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <h2><i class="fas fa-user"></i> Perfil de Usuario</h2>
+            <form id="profile-form" class="modal-form">
+                <div class="avatar-container">
+                    <div class="avatar">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            <i class="fas fa-camera"></i> Cambiar foto
+                        </button>
+                    </div>
+                </div>
+
+                <div id="profile-fields">
+                    <label for="profile-name">Nombre:</label>
+                    <input type="text" id="profile-name" name="profile-name" value="Administrador" required>
+
+                    <label for="profile-email">Email:</label>
+                    <input type="email" id="profile-email" name="profile-email" value="admin@example.com" required>
+
+                    <label for="profile-password">Nueva Contraseña:</label>
+                    <input type="password" id="profile-password" name="profile-password">
+
+                    <label for="profile-confirm-password">Confirmar Contraseña:</label>
+                    <input type="password" id="profile-confirm-password" name="profile-confirm-password">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit"><i class="fas fa-save"></i> Guardar Cambios</button>
+                    <button type="button" class="close" onclick="closeProfileModal()"><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para notificaciones -->
+    <div class="modal" id="notificationsModal">
+        <div class="modal-content">
+            <h2><i class="fas fa-bell"></i> Notificaciones</h2>
+            <div class="notifications-list">
+                <div class="notification-item unread">
+                    <div class="notification-actions">
+                        <button title="Marcar como leída"><i class="fas fa-check"></i></button>
+                        <button title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <p><strong>Nuevo estudiante inscrito</strong> - Ana López se ha inscrito en el Curso de HTML</p>
+                    <small>Hace 2 horas</small>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-actions">
+                        <button title="Marcar como leída"><i class="fas fa-check"></i></button>
+                        <button title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <p><strong>Pago recibido</strong> - Pedro Martínez ha completado el pago del Curso de CSS</p>
+                    <small>Hace 1 día</small>
+                </div>
+                <div class="notification-item important">
+                    <div class="notification-actions">
+                        <button title="Marcar como leída"><i class="fas fa-check"></i></button>
+                        <button title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <p><strong>Recordatorio</strong> - La clase de JavaScript comienza mañana</p>
+                    <small>Hace 3 días</small>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-actions">
+                        <button title="Marcar como leída"><i class="fas fa-check"></i></button>
+                        <button title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <p><strong>Mensaje del instructor</strong> - Carlos Ruiz ha enviado un mensaje sobre la próxima clase</p>
+                    <small>Hace 5 días</small>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="markAllNotificationsAsRead()"><i class="fas fa-check-double"></i> Marcar todas como leídas</button>
+                <button type="button" class="close" onclick="closeNotificationsModal()"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para configuración -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content" style="max-width: 45rem;">
+            <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
+            
+            <div class="settings-tabs">
+                <div class="settings-tab active" onclick="openSettingsTab('general-settings')">General</div>
+                <div class="settings-tab" onclick="openSettingsTab('user-management')">Usuarios</div>
+                <div class="settings-tab" onclick="openSettingsTab('notifications-settings')">Notificaciones</div>
+                <div class="settings-tab" onclick="openSettingsTab('security-settings')">Seguridad</div>
+            </div>
+            
+            <!-- Configuración General -->
+            <div id="general-settings" class="settings-tab-content active">
+                <div class="settings-form-group">
+                    <h3>Información del Sistema</h3>
+                    <label for="system-name">Nombre del Sistema:</label>
+                    <input type="text" id="system-name" name="system-name" value="Gestión de Cursos">
+                    
+                    <label for="system-timezone">Zona Horaria:</label>
+                    <select id="system-timezone" name="system-timezone">
+                        <option value="-5">UTC-05:00 (Colombia, Perú)</option>
+                        <option value="-6">UTC-06:00 (México Central)</option>
+                        <option value="-3">UTC-03:00 (Argentina, Chile)</option>
+                    </select>
+                </div>
+                
+                <div class="settings-form-group">
+                    <h3>Apariencia</h3>
+                    <label for="theme-select">Tema:</label>
+                    <select id="theme-select" name="theme-select">
+                        <option value="light">Claro</option>
+                        <option value="dark">Oscuro</option>
+                        <option value="system">Sistema</option>
+                    </select>
+                    
+                    <label for="primary-color">Color Primario:</label>
+                    <input type="color" id="primary-color" name="primary-color" value="#2c3e50">
+                </div>
+            </div>
+            
+            <!-- Gestión de Usuarios -->
+            <div id="user-management" class="settings-tab-content">
+                <div class="settings-form-group">
+                    <h3>Roles y Permisos</h3>
+                    <label>
+                        <input type="checkbox" name="allow-user-registration" checked>
+                        Permitir registro de nuevos usuarios
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" name="email-verification" checked>
+                        Requerir verificación de email
+                    </label>
+                </div>
+                
+                <div class="settings-form-group">
+                    <h3>Roles Disponibles</h3>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <button type="button" style="padding: 0.5rem 1rem;"><i class="fas fa-plus"></i> Agregar Rol</button>
+                    </div>
+                    
+                    <div style="border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden;">
+                        <table style="width: 100%; margin: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Rol</th>
+                                    <th>Permisos</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Administrador</td>
+                                    <td>Todos los permisos</td>
+                                    <td>
+                                        <button style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i class="fas fa-edit"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Asistente</td>
+                                    <td>Gestión de cursos, estudiantes</td>
+                                    <td>
+                                        <button style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i class="fas fa-edit"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Instructor</td>
+                                    <td>Gestión de sus cursos</td>
+                                    <td>
+                                        <button style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i class="fas fa-edit"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuración de Notificaciones -->
+            <div id="notifications-settings" class="settings-tab-content">
+                <div class="settings-form-group">
+                    <h3>Preferencias de Notificaciones</h3>
+                    <label>
+                        <input type="checkbox" name="email-notifications" checked>
+                        Notificaciones por Email
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" name="push-notifications" checked>
+                        Notificaciones Push
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" name="sound-notifications">
+                        Sonido de Notificaciones
+                    </label>
+                </div>
+                
+                <div class="settings-form-group">
+                    <h3>Tipos de Notificaciones</h3>
+                    <label>
+                        <input type="checkbox" name="notify-new-students" checked>
+                        Nuevos estudiantes inscritos
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" name="notify-payments" checked>
+                        Pagos recibidos
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" name="notify-course-updates">
+                        Actualizaciones de cursos
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Configuración de Seguridad -->
+            <div id="security-settings" class="settings-tab-content">
+                <div class="settings-form-group">
+                    <h3>Autenticación</h3>
+                    <label>
+                        <input type="checkbox" name="two-factor-auth">
+                        Requerir autenticación de dos factores
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" name="password-complexity" checked>
+                        Requerir contraseñas complejas
+                    </label>
+                    
+                    <label for="session-timeout">Tiempo de expiración de sesión (minutos):</label>
+                    <input type="number" id="session-timeout" name="session-timeout" value="30" min="5">
+                </div>
+                
+                <div class="settings-form-group">
+                    <h3>Registro de Actividad</h3>
+                    <label>
+                        <input type="checkbox" name="log-logins" checked>
+                        Registrar inicios de sesión
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" name="log-changes">
+                        Registrar cambios importantes
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" onclick="saveSettings()"><i class="fas fa-save"></i> Guardar Configuración</button>
+                <button type="button" class="close" onclick="closeSettingsModal()"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar usuario -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <h2><i class="fas fa-user-plus"></i> Agregar Nuevo Usuario</h2>
+            <form id="add-user-form" class="modal-form">
+                <div id="user-fields">
+                    <label for="user-name">Nombre Completo:</label>
+                    <input type="text" id="user-name" name="user-name" required>
+
+                    <label for="user-email">Email:</label>
+                    <input type="email" id="user-email" name="user-email" required>
+
+                    <label for="user-role">Rol:</label>
+                    <select id="user-role" name="user-role" required>
+                        <option value="">Seleccione un rol</option>
+                        <option value="administrativo">Administrativo</option>
+                        <option value="asistente">Asistente</option>
+                        <option value="instructor">Instructor</option>
+                    </select>
+
+                    <label for="user-password">Contraseña:</label>
+                    <input type="password" id="user-password" name="user-password" required>
+
+                    <label for="user-confirm-password">Confirmar Contraseña:</label>
+                    <input type="password" id="user-confirm-password" name="user-confirm-password" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit"><i class="fas fa-user-plus"></i> Agregar Usuario</button>
+                    <button type="button" class="close" onclick="closeAddUserModal()"><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Variable para controlar la sección actual
+        let currentSection = 'cursos';
+
+        // Función para alternar el menú lateral en móviles
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+            mainContent.classList.toggle('sidebar-open');
+            
+            // Bloquear/desbloquear scroll del body cuando el menú está abierto
+            document.body.style.overflow = overlay.classList.contains('open') ? 'hidden' : '';
+        }
+
+        // Funciones para abrir y cerrar el modal
+        function openModal() {
+            // Configurar el modal según la sección actual
+            const modalTitle = document.getElementById('modal-title');
+            const submitButton = document.getElementById('submit-button');
+            const courseFields = document.getElementById('course-fields');
+            const studentFields = document.getElementById('student-fields');
+
+            if (currentSection === 'cursos') {
+                modalTitle.textContent = 'Agregar Nuevo Curso';
+                submitButton.textContent = 'Agregar Curso';
+                courseFields.classList.remove('hidden');
+                studentFields.classList.add('hidden');
+            } else if (currentSection === 'estudiantes') {
+                modalTitle.textContent = 'Agregar Nuevo Estudiante';
+                submitButton.textContent = 'Agregar Estudiante';
+                courseFields.classList.add('hidden');
+                studentFields.classList.remove('hidden');
+            }
+
+            document.getElementById('modal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Funciones para el modal de perfil
+        function openProfileModal() {
+            document.getElementById('profileModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Funciones para el modal de notificaciones
+        function openNotificationsModal() {
+            document.getElementById('notificationsModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notificationsModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function markAllNotificationsAsRead() {
+            const notifications = document.querySelectorAll('.notification-item.unread');
+            notifications.forEach(notification => {
+                notification.classList.remove('unread');
+            });
+            alert('Todas las notificaciones marcadas como leídas');
+        }
+
+        // Funciones para el modal de configuración
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function openSettingsTab(tabId) {
+            // Ocultar todos los contenidos de pestañas
+            document.querySelectorAll('.settings-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Desactivar todas las pestañas
+            document.querySelectorAll('.settings-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activar la pestaña seleccionada
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function saveSettings() {
+            alert('Configuración guardada exitosamente');
+            closeSettingsModal();
+        }
+
+        // Funciones para el modal de agregar usuario
+        function openAddUserModal() {
+            document.getElementById('addUserModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddUserModal() {
+            document.getElementById('addUserModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Cerrar modal al hacer clic fuera del contenido
+        window.onclick = function (event) {
+            const modal = document.getElementById('modal');
+            const profileModal = document.getElementById('profileModal');
+            const notificationsModal = document.getElementById('notificationsModal');
+            const settingsModal = document.getElementById('settingsModal');
+            const addUserModal = document.getElementById('addUserModal');
+            
+            if (event.target === modal) {
+                closeModal();
+            }
+            if (event.target === profileModal) {
+                closeProfileModal();
+            }
+            if (event.target === notificationsModal) {
+                closeNotificationsModal();
+            }
+            if (event.target === settingsModal) {
+                closeSettingsModal();
+            }
+            if (event.target === addUserModal) {
+                closeAddUserModal();
+            }
+        };
+
+        // Manejar el envío del formulario
+        document.getElementById('course-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            if (currentSection === 'cursos') {
+                alert('Curso agregado exitosamente.');
+            } else if (currentSection === 'estudiantes') {
+                alert('Estudiante agregado exitosamente.');
+            }
+            
+            closeModal();
+        });
+
+        // Manejar el envío del formulario de perfil
+        document.getElementById('profile-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            alert('Perfil actualizado exitosamente.');
+            closeProfileModal();
+        });
+
+        // Manejar el envío del formulario de agregar usuario
+        document.getElementById('add-user-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('user-password').value;
+            const confirmPassword = document.getElementById('user-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                alert('Las contraseñas no coinciden.');
+                return;
+            }
+            
+            alert('Usuario agregado exitosamente.');
+            closeAddUserModal();
+        });
+
+        // Enviar certificado
+        function sendCertificate(studentName) {
+            alert(`Certificado enviado a ${studentName}`);
+        }
+
+        // Marcar como pagado
+        function markAsPaid(studentName) {
+            alert(`Pago marcado como completado para ${studentName}`);
+        }
+
+        // Mostrar la sección seleccionada
+        function showSection(sectionId) {
+            // Actualizar la sección actual
+            currentSection = sectionId;
+            
+            // Ocultar todas las secciones
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Mostrar la sección seleccionada
+            document.getElementById(sectionId).classList.add('active');
+
+            // Cambiar el título de la sección
+            const sectionTitle = document.getElementById('section-title');
+            const actionButton = document.getElementById('main-action-button');
+            const searchContainer = document.getElementById('search-container');
+
+            switch (sectionId) {
+                case 'cursos':
+                    sectionTitle.textContent = 'Cursos Disponibles';
+                    actionButton.textContent = 'Agregar Curso';
+                    actionButton.classList.remove('hidden');
+                    searchContainer.classList.add('hidden');
+                    break;
+                case 'estudiantes':
+                    sectionTitle.textContent = 'Estudiantes Inscritos';
+                    actionButton.textContent = 'Agregar Estudiante';
+                    actionButton.classList.remove('hidden');
+                    searchContainer.classList.add('hidden');
+                    break;
+                case 'pagos':
+                    sectionTitle.textContent = 'Control de Pagos';
+                    actionButton.classList.add('hidden');
+                    searchContainer.classList.remove('hidden');
+                    break;
+                case 'estadisticas':
+                    sectionTitle.textContent = 'Estadísticas de Cursos';
+                    actionButton.classList.add('hidden');
+                    searchContainer.classList.add('hidden');
+                    break;
+            }
+
+            // Cerrar el menú lateral en móviles
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+            
+            // Scroll al inicio de la sección
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Función para cerrar sesión
+        function logout() {
+            if (confirm('¿Estás seguro de que deseas salir?')) {
+                alert('Sesión cerrada correctamente.');
+                // Redireccionar a la página de login
+                // window.location.href = 'login.html';
+            }
+        }
+
+        // Inicializar la sección de cursos como activa
+        showSection('cursos');
+
+        // Inicializar gráfico de torta
+        window.onload = function() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['HTML', 'CSS', 'JavaScript', 'Python', 'React'],
+                    datasets: [{
+                        data: [25, 20, 30, 15, 10],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribución de Estudiantes por Curso',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Ajustar el gráfico al cambiar el tamaño de la ventana
+            window.addEventListener('resize', function() {
+                chart.resize();
+            });
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
